@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat UI</title>
+
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --bg: #101014;
+  --panel: #18181f;
+  --border: #30303b;
+  --text: #f4f4fa;
+  --muted: #9999aa;
+  --purple: #8c7bff;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+button, textarea, select { font: inherit; }
+button { cursor: pointer; }
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  height: 65px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+  background: #15151b;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.logo {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #b2a5ff, #6954eb);
+  font-size: 24px;
+}
+
+.brand h1 { margin: 0; font-size: 19px; }
+.brand p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+
+.badge {
+  border: 1px solid var(--border);
+  padding: 7px 11px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #bcb2ff;
+}
+
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(270px, 38%) 1fr;
+}
+
+.chat-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.panel-heading {
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+}
+
+.welcome { padding: 25px 3px; }
+
+.welcome .big-logo {
+  font-size: 36px;
+  color: #a99aff;
+}
+
+.welcome h2 {
+  font-size: 25px;
+  letter-spacing: -1px;
+  margin: 12px 0;
+}
+
+.welcome h2 span { color: var(--purple); }
+
+.welcome p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.quick {
+  width: 100%;
+  display: block;
+  text-align: left;
+  margin-top: 9px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #1c1c24;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.quick:hover { border-color: var(--purple); }
+
+.quick span {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.message { margin-bottom: 19px; }
+
+.message .role {
+  font-size: 11px;
+  color: #aa9cff;
+  margin-bottom: 7px;
+  font-weight: bold;
+}
+
+.message .body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.composer {
+  padding: 13px;
+  border-top: 1px solid var(--border);
+}
+
+.composer textarea {
+  width: 100%;
+  min-height: 70px;
+  max-height: 150px;
+  resize: vertical;
+  color: var(--text);
+  background: #202028;
+  border: 1px solid #383844;
+  border-radius: 11px;
+  outline: none;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.composer textarea:focus { border-color: var(--purple); }
+
+.composer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.hint { font-size: 10px; color: var(--muted); }
+
+.primary, .secondary {
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.primary {
+  color: white;
+  background: linear-gradient(135deg, #9b8aff, #7059e9);
+}
+
+.secondary {
+  background: #292933;
+  color: #eeeeF5;
+  border: 1px solid var(--border);
+}
+
+.primary:hover, .secondary:hover { filter: brightness(1.15); }
+
+.code-panel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #111116;
+}
+
+.code-toolbar {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 17px;
+  border-bottom: 1px solid var(--border);
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+}
+
+.file-icon { color: #ff9b72; font-size: 17px; }
+
+.toolbar-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+select {
+  background: #24242d;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 11px;
+  max-width: 120px;
+}
+
+.code-info {
+  padding: 10px 17px;
+  border-bottom: 1px solid #25252d;
+  color: var(--muted);
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.editor {
+  flex: 1;
+  min-height: 100px;
+  display: flex;
+  overflow: hidden;
+}
+
+.line-numbers {
+  width: 43px;
+  flex-shrink: 0;
+  padding: 16px 10px;
+  overflow: hidden;
+  text-align: right;
+  color: #606070;
+  background: #111116;
+  border-right: 1px solid #25252d;
+  font: 12px/1.75 Consolas, monospace;
+  user-select: none;
+  white-space: pre;
+}
+
+#code {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  resize: none;
+  outline: none;
+  border: 0;
+  padding: 16px;
+  background: #111116;
+  color: #d6d6e7;
+  font: 12px/1.75 Consolas, "Courier New", monospace;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+
+.preview {
+  height: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: white;
+  transition: height .2s;
+}
+
+.preview.open {
+  height: 43%;
+  border-top: 1px solid var(--border);
+}
+
+.preview iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: white;
+}
+
+footer {
+  padding: 10px 15px;
+  text-align: center;
+  color: #71717f;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+}
+
+@media(max-width: 700px) {
+  body { overflow: auto; height: auto; }
+  .app { min-height: 100vh; height: auto; }
+  .workspace { grid-template-columns: 1fr; }
+  .chat-panel { border-right: 0; }
+  .messages { min-height: 300px; max-height: 420px; }
+  .code-panel { height: 550px; border-top: 1px solid var(--border); }
+  .editor { min-height: 250px; }
+  header { padding: 0 12px; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="brand">
+    <div class="logo">✳</div>
+    <div>
+      <h1>Chat UI</h1>
+      <p>Your personal coding agent</p>
+    </div>
+  </div>
+  <div class="badge">⌘ Code workspace</div>
+</header>
+
+<div class="workspace">
+
+  <section class="chat-panel">
+    <div class="panel-heading">✦ &nbsp; Coding assistant</div>
+
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="big-logo">✳</div>
+        <h2>Let's build <span>something.</span></h2>
+        <p>Tell Chat UI what you want to code. Your code will appear in the editor on the right.</p>
+
+        <button class="quick" data-prompt="Create a colorful personal website">
+          🌐 Create a website
+          <span>Generate an HTML page with CSS styling.</span>
+        </button>
+
+        <button class="quick" data-prompt="Create a simple clicker game">
+          🎮 Make a game
+          <span>Build a playable game using JavaScript.</span>
+        </button>
+
+        <button class="quick" data-prompt="Create a Python hello world program">
+          🐍 Write Python
+          <span>Generate a Python code example.</span>
+        </button>
+
+        <button class="quick" data-prompt="Explain the code currently in the editor">
+          💡 Explain my code
+          <span>Get a basic explanation of the current code.</span>
+        </button>
+      </div>
+    </div>
+
+    <form class="composer" id="form">
+      <textarea id="prompt" placeholder="What do you want to code?" required></textarea>
+      <div class="composer-bottom">
+        <span class="hint">Enter to send · Shift+Enter for a new line</span>
+        <button class="primary" type="submit">Generate ↗</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="code-panel">
+    <div class="code-toolbar">
+      <div class="file-label">
+        <span class="file-icon">▤</span>
+        <strong id="filename">index.html</strong>
+      </div>
+      <div class="toolbar-actions">
+        <select id="language" aria-label="Code language">
+          <option value="html">HTML</option>
+          <option value="javascript">JavaScript</option>
+          <option value="css">CSS</option>
+          <option value="python">Python</option>
+        </select>
+        <button class="secondary" id="copy" type="button">Copy code</button>
+        <button class="primary" id="run" type="button">▶ Run</button>
+      </div>
+    </div>
+
+    <div class="code-info">
+      <span id="codeStatus">Ready to code</span>
+      <span id="lineCount">1 line</span>
+    </div>
+
+    <div class="editor">
+      <div class="line-numbers" id="numbers">1</div>
+      <textarea id="code" spellcheck="false" wrap="off"
+        aria-label="Code editor"></textarea>
+    </div>
+
+    <div class="preview" id="preview">
+      <iframe id="frame" title="Website preview"
+        sandbox="allow-scripts"></iframe>
+    </div>
+    <footer>Creator: ChatGPT · Owner: Chat UI</footer>
+  </section>
+
+</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const messages = $("messages");
+const welcome = $("welcome");
+const promptInput = $("prompt");
+const code = $("code");
+const language = $("language");
+const numbers = $("numbers");
+const preview = $("preview");
+const frame = $("frame");
+
+const examples = {
+  html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0edff;
+      color: #292342;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .card {
+      max-width: 450px;
+      margin: 30px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 35px #30205a18;
+    }
+    button {
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 10px;
+      background: #8066ee;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hello, world! ✨</h1>
+    <p>Welcome to my first website.</p>
+    <button onclick="alert('It works!')">Click me</button>
+  </div>
+</body>
+</html>`,
+
+  javascript: `// My JavaScript program
+
+function greet(name) {
+  return "Hello, " + name + "!";
+}
+
+const message = greet("World");
+console.log(message);`,
+
+  css: `/* My CSS design */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #101014;
+  color: white;
+}
+
+.card {
+  max-width: 500px;
+  margin: 60px auto;
+  padding: 30px;
+  border-radius: 18px;
+  background: #20202a;
+}
+
+button {
+  background: #8c7bff;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+}`,
+
+  python: `# My Python program
+
+def greet(name):
+    return f"Hello, {name}!"
+
+message = greet("World")
+print(message)`
+};
+
+let generatedCode = examples.html;
+
+function updateEditor() {
+  numbers.textContent = Array.from(
+    { length: Math.max(1, code.value.split("\n").length) },
+    (_, i) => i + 1
+  ).join("\n");
+
+  const count = code.value.split("\n").length;
+  $("lineCount").textContent = count + (count === 1 ? " line" : " lines");
+  generatedCode = code.value;
+}
+
+function setCode(text, lang) {
+  code.value = text;
+  language.value = lang;
+  $("filename").textContent = {
+    html: "index.html",
+    javascript: "script.js",
+    css: "style.css",
+    python: "main.py"
+  }[lang];
+
+  $("codeStatus").textContent = "Code generated";
+  updateEditor();
+}
+
+function addMessage(role, text) {
+  const item = document.createElement("div");
+  item.className = "message";
+
+  const label = document.createElement("div");
+  label.className = "role";
+  label.textContent = role === "user" ? "YOU" : "CHAT UI";
+
+  const body = document.createElement("div");
+  body.className = "body";
+  body.textContent = text;
+
+  item.append(label, body);
+  messages.appendChild(item);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function createWebsite(title) {
+  const safeTitle = title.replace(/[<>&"]/g, "");
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${safeTitle}</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #17132b, #473078);
+  font-family: Arial, sans-serif;
+  color: white;
+}
+.card {
+  width: min(100%, 520px);
+  padding: 45px 30px;
+  text-align: center;
+  background: #ffffff12;
+  border: 1px solid #ffffff30;
+  border-radius: 24px;
+  box-shadow: 0 20px 80px #0003;
+}
+h1 { font-size: clamp(30px, 6vw, 48px); }
+p { color: #ded7ff; line-height: 1.8; }
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 14px 23px;
+  color: #241b48;
+  background: #d6ccff;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>${safeTitle}</h1>
+  <p>A website created with Chat UI. Customize this code to make it your own!</p>
+  <button onclick="document.querySelector('p').textContent='Thanks for visiting!'">
+    Get started ✨
+  </button>
+</main>
+</body>
+</html>`;
+}
+
+function generate(request) {
+  const text = request.toLowerCase();
+  const lang = language.value;
+
+  if (text.includes("explain")) {
+    return {
+      lang,
+      code: code.value,
+      reply: "I've kept the current code in the editor. This demo cannot automatically analyze arbitrary code like a real AI model, but you can inspect and edit the code on the right."
+    };
+  }
+
+  if (text.includes("game") || text.includes("clicker")) {
+    return {
+      lang: "html",
+      code: `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clicker Game</title>
+<style>
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #151522;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+main { padding: 30px; }
+#score { font-size: 60px; margin: 25px; }
+button {
+  padding: 20px 35px;
+  border: 0;
+  border-radius: 16px;
+  background: #8c7bff;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>✨ Clicker Game</h1>
+  <p>Click the button to earn points!</p>
+  <div id="score">0</div>
+  <button id="clicker">Click me!</button>
+  <p id="message">Let's play!</p>
+</main>
+<script>
+let score = 0;
+document.getElementById("clicker").addEventListener("click", () => {
+  score++;
+  document.getElementById("score").textContent = score;
+  document.getElementById("message").textContent =
+    score >= 20 ? "Amazing! 20 points!" : "Keep going!";
+});
+<\/script>
+</body>
+</html>`,
+      reply: "I've generated a playable clicker game with a score counter. Press Run to try it in the preview panel."
+    };
+  }
+
+  if (text.includes("python") || lang === "python") {
+    return {
+      lang: "python",
+      code: `# Generated Python example
+
+def main():
+    print("Hello from Chat UI!")
+
+    name = input("What is your name? ")
+    print(f"Nice to meet you, {name}!")
+
+if __name__ == "__main__":
+    main()
+`,
+      reply: "I've generated a Python program. Copy it into main.py in VS Code. Python code cannot run directly in this webpage; run it using your Python installation."
+    };
+  }
+
+  if (text.includes("javascript") || lang === "javascript") {
+    return {
+      lang: "javascript",
+      code: `// Generated JavaScript example
+
+function main() {
+  const message = "Hello from Chat UI!";
+  console.log(message);
+}
+
+main();`,
+      reply: "I've generated a JavaScript example. Copy it into script.js in VS Code. Use your browser console or Node.js to run it."
+    };
+  }
+
+  if (text.includes("css") && !text.includes("website")) {
+    return {
+      lang: "css",
+      code: examples.css,
+      reply: "Here's a CSS starter design. You can change the colors, spacing, and styles in the editor."
+    };
+  }
+
+  const title = text.includes("pepsi") ? "Pepsi Fan Page"
+    : text.includes("kfc") ? "Chicken Restaurant"
+    : text.includes("portfolio") ? "My Portfolio"
+    : text.includes("space") ? "Space Explorer"
+    : text.includes("login") ? "Login Page"
+    : text.includes("shop") ? "My Online Shop"
+    : text.includes("ai") ? "My AI Website"
+    : "My New Website";
+
+  return {
+    lang: "html",
+    code: createWebsite(title),
+    reply: "I've created a starter website based on your request. The code is visible on the right. You can edit it, copy it, and press Run to preview it.\n\nThis is a template-based demo, not a real AI model, so it won't fully understand every instruction yet."
+  };
+}
+
+$("form").addEventListener("submit", event => {
+  event.preventDefault();
+  const request = promptInput.value.trim();
+  if (!request) return;
+
+  welcome.style.display = "none";
+  addMessage("user", request);
+  promptInput.value = "";
+
+  $("codeStatus").textContent = "Generating example...";
+
+  const result = generate(request);
+  setCode(result.code, result.lang);
+  addMessage("assistant", result.reply);
+});
+
+document.querySelectorAll(".quick").forEach(button => {
+  button.addEventListener("click", () => {
+    promptInput.value = button.dataset.prompt;
+    $("form").requestSubmit();
+  });
+});
+
+language.addEventListener("change", () => {
+  setCode(examples[language.value], language.value);
+  $("codeStatus").textContent = "Starter template loaded";
+});
+
+code.addEventListener("input", updateEditor);
+code.addEventListener("scroll", () => {
+  numbers.scrollTop = code.scrollTop;
+});
+
+$("copy").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(code.value);
+    $("copy").textContent = "Copied!";
+  } catch {
+    code.focus();
+    code.select();
+    const copied = document.execCommand("copy");
+    $("copy").textContent = copied ? "Copied!" : "Select and copy";
+  }
+
+  setTimeout(() => $("copy").textContent = "Copy code", 1500);
+});
+
+$("run").addEventListener("click", () => {
+  const lang = language.value;
+
+  if (lang !== "html") {
+    addMessage("assistant",
+      lang === "python"
+        ? "Python needs a Python interpreter. Copy this code into main.py in VS Code and run it there."
+        : "To run standalone CSS or JavaScript, put it inside an HTML page or use the appropriate development tools.");
+    return;
+  }
+
+  preview.classList.add("open");
+  frame.srcdoc = code.value;
+  $("codeStatus").textContent = "Preview opened";
+});
+
+setCode(examples.html, "html");
+</script>
+</body>
+</html>
